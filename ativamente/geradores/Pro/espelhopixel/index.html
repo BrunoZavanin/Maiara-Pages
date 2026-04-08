@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AtivaMente - Pixel Espelho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&family=Vt323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --bg-body: #dfe6e9;
+            --text-main: #2d3436;
+            --grid-line: #b2bec3;
+            --paper-bg: #ffffff;
+            --pixel-color: #2d3436;
+        }
+
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 360px;
+            background: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 20;
+            border-right: 1px solid #ccc;
+            flex-shrink: 0;
+        }
+
+        h2 { margin: 0; font-family: 'Vt323', monospace; color: var(--primary); font-size: 2.2rem; border-bottom: 3px dashed #eee; padding-bottom: 10px; text-align: center; letter-spacing: 2px; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 5px; }
+        label { font-weight: 800; font-size: 0.75rem; color: #636e72; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        select, input, button {
+            width: 100%; padding: 10px; border: 2px solid #dfe6e9; border-radius: 8px;
+            font-family: inherit; font-size: 0.9rem; outline: none; transition: 0.2s; cursor: pointer;
+        }
+        select:focus, input:focus { border-color: var(--primary); background: #fdfdfd; }
+
+        /* Color Buttons (Limit 5) */
+        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .color-btn {
+            width: 100%; aspect-ratio: 1; border-radius: 8px; border: 2px solid white; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
+        }
+        .color-btn.active { box-shadow: 0 0 0 3px var(--text-main); transform: scale(1.1); }
+
+        /* Editor Box */
+        .editor-box { background: #f1f2f6; padding: 12px; border-radius: 12px; border: 1px solid #ced6e0; }
+        .editor-box h3 { margin: 0 0 8px 0; font-size: 0.8rem; color: #2d3436; font-weight: 900; text-transform: uppercase; }
+
+        .btn-gen { background: var(--primary); color: white; border: none; font-weight: 800; box-shadow: 0 4px 0 rgba(0,0,0,0.2); margin-top: 5px; font-family: 'Vt323', monospace; font-size: 1.2rem; letter-spacing: 1px; }
+        .btn-gen:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-print { background: #2d3436; color: white; border: none; font-weight: 800; margin-top: auto; padding: 15px; font-size: 1rem; border-radius: 8px; }
+
+        /* --- PREVIEW AREA --- */
+        .preview-area {
+            flex: 1;
+            background: #b2bec3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: auto;
+            padding: 40px 20px;
+        }
+
+        .paper {
+            width: 210mm;
+            height: 297mm;
+            background: var(--paper-bg);
+            /* Graph Paper Effect */
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: center top;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 15mm;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transform-origin: top center;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        /* Header */
+        .header { 
+            display: flex; justify-content: space-between; align-items: flex-end; 
+            margin-bottom: 20px; 
+            background: white; border: 3px solid var(--text-main); border-radius: 10px;
+            padding: 15px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+            position: relative; z-index: 5;
+        }
+        .title h1 { 
+            font-family: 'Vt323', monospace; font-size: 3.5rem; margin: 0; 
+            color: var(--primary); line-height: 0.8; letter-spacing: 2px;
+        }
+        .title p { margin: 5px 0 0; color: #636e72; font-weight: 700; font-size: 1rem; }
+        
+        .info { text-align: right; font-size: 0.9rem; color: #636e72; }
+        .info-row { display: flex; gap: 5px; justify-content: flex-end; align-items: baseline; margin-bottom: 5px; }
+        .line { border-bottom: 2px dotted #b2bec3; width: 140px; display: inline-block; text-align: center; }
+
+        /* GAME AREA */
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        /* The Board */
+        .mirror-board {
+            display: flex;
+            background: white;
+            border: 4px solid var(--text-main);
+            border-radius: 4px;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .mirror-half {
+            display: grid;
+            border-right: 0;
+        }
+        
+        /* The Divider */
+        .mirror-divider {
+            width: 8px;
+            background: var(--accent);
+            position: relative;
+            z-index: 2;
+            background-image: repeating-linear-gradient(
+                0deg,
+                var(--accent),
+                var(--accent) 10px,
+                #fff 10px,
+                #fff 20px
+            );
+        }
+
+        .pixel {
+            border: 1px solid #f1f2f6;
+            aspect-ratio: 1;
+        }
+
+        /* Pixel States */
+        .pixel.filled {
+            background-color: var(--pixel-color);
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        /* SHADOW GUIDE MODE */
+        .pixel.shadow {
+            background-color: #f1f2f6;
+            position: relative;
+        }
+        .pixel.shadow::after {
+            content: ''; position: absolute; top: 35%; left: 35%; right: 35%; bottom: 35%;
+            background: #b2bec3; border-radius: 50%;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center; font-size: 0.8rem; color: #b2bec3; 
+            margin-top: 15px; background: white; padding: 5px; border-radius: 5px; border: 1px solid #eee;
+        }
+
+        /* Editable */
+        [contenteditable] { border-bottom: 1px dashed transparent; transition: 0.2s; }
+        [contenteditable]:hover { background: rgba(255, 234, 167, 0.4); border-bottom: 1px solid var(--secondary); }
+
+        @media print {
+            body { background: white; display: block; height: auto; }
+            .sidebar { display: none; }
+            .preview-area { padding: 0; background: white; display: block; }
+            .paper { 
+                margin: 0; box-shadow: none; 
+                width: 100%; height: 100vh;
+                page-break-after: avoid; 
+                transform: none !important;
+            }
+        }
+    </style>
+
+<style id="am-nav-style">
+#am-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 46px;
+  background: rgba(7, 10, 22, 0.96);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; z-index: 99999;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  box-sizing: border-box;
+}
+#am-nav img {
+  height: 27px; object-fit: contain; display: block;
+}
+#am-nav a.am-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-decoration: none; font-weight: 500;
+  background: rgba(255,255,255,0.07);
+  padding: 5px 13px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+#am-nav a.am-back:hover {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+@media print { #am-nav { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="am-nav"><img src="../../Logo.png" alt="AtivaMente Kids"><a href="../../index.html" class="am-back">← Painel</a></div>
+
+    <div class="sidebar">
+        <h2>👾 Pixel Espelho</h2>
+
+        <div class="control-group">
+            <label>Cor do Lápis (5 Opções)</label>
+            <div class="color-grid" id="colorContainer"></div>
+        </div>
+
+        <div class="editor-box">
+            <h3>📝 EDITAR TEXTOS</h3>
+            <div class="control-group">
+                <input type="text" id="inpTitle" value="ESPELHO PIXEL" oninput="updateText('outTitle', this.value)">
+                <input type="text" id="inpSub" value="Reflita a imagem!" oninput="updateText('outSub', this.value)">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-top:5px;">
+                <input type="text" id="inpName" value="Nome:" oninput="updateText('lblN', this.value)">
+                <input type="text" id="inpClass" value="Turma:" oninput="updateText('lblC', this.value)">
+                <input type="text" id="inpDate" value="Data:" oninput="updateText('lblD', this.value)">
+            </div>
+            <div class="control-group" style="margin-top:5px;">
+                <input type="text" id="inpFooter" value="Criado com AtivaMente Kids" oninput="updateText('outFooter', this.value)">
+            </div>
+        </div>
+
+        <div class="control-group" style="margin-top:10px;">
+            <label>Idioma</label>
+            <select id="langSelect" onchange="changeLanguage()">
+                <option value="en">🇺🇸 English</option>
+                <option value="id">🇮🇩 Indonesia</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="pt" selected>🇵🇹 Português</option>
+                <option value="nl">🇳🇱 Nederlands</option>
+                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="pl">🇵🇱 Polski</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="jp">🇯🇵 日本語</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Tema</label>
+            <select id="themeSelect" onchange="generateMirror()">
+                <option value="mix">🎲 Mix Tudo</option>
+                <option value="faces">😀 Rostos (Emojis)</option>
+                <option value="objects">🏠 Objetos (Casa, Xícara)</option>
+                <option value="fruit">🍎 Frutas (Maçã, Pera)</option>
+                <option value="animals">🐱 Animais (Gato, Urso)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Tamanho da Grade</label>
+            <select id="sizeSelect" onchange="generateMirror()">
+                <option value="6">Fácil (6x6)</option>
+                <option value="10" selected>Médio (10x10)</option>
+                <option value="14">Difícil (14x14)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Modo de Ajuda</label>
+            <select id="aidSelect" onchange="renderBoard()">
+                <option value="off">⬜ Grade em Branco</option>
+                <option value="on">✨ Guia de Sombra</option>
+            </select>
+        </div>
+
+        <button class="btn-gen" onclick="generateMirror()">🎲 GERAR NOVOS PUZZLES</button>
+        <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR PDF (A4)</button>
+		<button class="btn-print" onclick="saveAsImage()">💾 SALVAR COMO IMAGEM</button>
+
+    </div>
+
+    <div class="preview-area">
+        <div class="paper" id="paper">
+            
+            <div class="header">
+                <div class="title">
+                    <h1 id="outTitle" contenteditable="true">PIXEL MIRROR</h1>
+                    <p id="outSub" contenteditable="true">Mirror the image!</p>
+                </div>
+                <div class="info">
+                    <div class="info-row"><span class="info-label" id="lblN" contenteditable="true">Name:</span> <span class="line" contenteditable="true"></span></div>
+                    <div class="info-row"><span class="info-label" id="lblC" contenteditable="true">Class:</span> <span class="line" contenteditable="true"></span></div>
+                    <div class="info-row"><span class="info-label" id="lblD" contenteditable="true">Date:</span> <span class="line" contenteditable="true"></span></div>
+                </div>
+            </div>
+
+            <div class="game-container" id="gameContainer">
+                </div>
+
+            <div class="footer" id="outFooter" contenteditable="true">
+                Criado com AtivaMente Kids
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CLEAN & SAFE PIXEL DATA (NO CROSSES, NO + SIGNS) ---
+        // Arrays represent LEFT HALF only. 1 = Fill.
+        const pixelArt = {
+            faces: [
+                [[0,1,1,1,0],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[0,1,1,1,0]], // Rosto Feliz
+                [[0,1,1,1,0],[1,0,1,0,1],[1,0,1,0,1],[1,1,0,1,1],[0,1,1,1,0]], // Rosto Surpreso
+                [[1,1,1,1,1],[1,0,1,0,1],[1,1,1,1,1],[0,1,0,1,0],[1,1,1,1,1]], // Robô
+                [[0,1,1,1,0],[1,1,1,1,1],[1,0,1,1,1],[1,1,1,1,1],[0,1,1,1,1]]  // Óculos
+            ],
+            objects: [
+                [[0,0,1,0,0],[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[1,0,1,0,1]], // Casa
+                [[0,1,1,1,0],[1,1,0,0,1],[1,1,0,0,1],[1,1,0,0,1],[0,1,1,1,0]], // Xícara
+                [[0,0,1,0,0],[0,1,1,1,0],[0,0,1,0,0],[1,1,1,1,1],[0,0,1,0,0]], // Avião
+                [[0,1,1,1,0],[1,1,1,1,1],[0,1,1,1,0],[0,1,1,1,0],[0,1,1,1,0]]  // Chave
+            ],
+            fruit: [
+                [[0,0,1,1,0],[0,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]], // Maçã
+                [[0,0,1,0,0],[0,1,1,1,0],[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1]], // Pera
+                [[1,1,0,0,0],[1,1,1,0,0],[0,1,1,1,0],[0,0,1,1,1],[0,0,0,1,1]], // Uvas
+                [[0,0,1,1,0],[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]]  // Morango
+            ],
+            animals: [
+                [[1,0,0,0,1],[1,1,1,1,1],[1,0,1,0,1],[1,1,1,1,1],[0,1,1,1,0]], // Gato
+                [[0,1,1,1,0],[1,1,1,1,1],[1,0,1,0,1],[1,1,1,1,1],[1,1,1,1,1]], // Urso
+                [[0,0,1,1,1],[0,1,1,1,1],[1,1,1,1,0],[0,1,1,1,1],[0,0,1,1,1]], // Peixe
+                [[0,1,1,0,0],[1,1,1,1,0],[0,1,1,1,1],[1,1,1,1,0],[0,1,1,0,0]]  // Borboleta
+            ]
+        };
+
+        // 5 COLORS ONLY
+        const colors = [
+            { c:'#2d3436', n:'Black' },
+            { c:'#0984e3', n:'Blue' },
+            { c:'#d63031', n:'Red' },
+            { c:'#00b894', n:'Green' },
+            { c:'#6c5ce7', n:'Purple' }
+        ];
+
+        const i18n = {
+            en: { t:"PIXEL MIRROR", s:"Mirror the image!", n:"Name:", c:"Class:", d:"Date:" },
+            id: { t:"CERMIN PIKSEL", s:"Gambar pantulannya!", n:"Nama:", c:"Kelas:", d:"Tgl:" },
+            es: { t:"ESPEJO PÍXEL", s:"¡Refleja la imagen!", n:"Nombre:", c:"Clase:", d:"Fecha:" },
+            fr: { t:"MIROIR PIXEL", s:"Reflétez l'image!", n:"Nom:", c:"Classe:", d:"Date:" },
+            de: { t:"PIXEL SPIEGEL", s:"Spiegle das Bild!", n:"Name:", c:"Klasse:", d:"Datum:" },
+            it: { t:"SPECCHIO PIXEL", s:"Rifletti l'immagine!", n:"Nome:", c:"Classe:", d:"Data:" },
+            pt: { t:"ESPELHO PIXEL", s:"Reflita a imagem!", n:"Nome:", c:"Turma:", d:"Data:" },
+            nl: { t:"PIXEL SPIEGEL", s:"Spiegel het beeld!", n:"Naam:", c:"Klas:", d:"Datum:" },
+            tr: { t:"PİKSEL AYNA", s:"Resmi yansıt!", n:"İsim:", c:"Sınıf:", d:"Tarih:" },
+            pl: { t:"PIKSELOWE ODBICIE", s:"Odbij obrazek!", n:"Imię:", c:"Klasa:", d:"Data:" },
+            ru: { t:"ПИКСЕЛЬ АРТ", s:"Отрази рисунок!", n:"Имя:", c:"Класс:", d:"Дата:" },
+            jp: { t:"ピクセルミラー", s:"はんたいがわもかこう！", n:"なまえ:", c:"クラス:", d:"ひづけ:" }
+        };
+
+        let currentData = []; 
+
+        window.onload = () => {
+            renderColors();
+            applyColor(0);
+            generateMirror();
+            adjustScale();
+            window.addEventListener('resize', adjustScale);
+        };
+
+        function adjustScale() {
+            const paper = document.getElementById('paper');
+            const preview = document.querySelector('.preview-area');
+            const scale = Math.min((preview.offsetWidth - 40) / paper.offsetWidth, 1);
+            paper.style.transform = `scale(${scale})`;
+        }
+
+        function updateText(id, val) { document.getElementById(id).innerText = val; }
+
+        function renderColors() {
+            const c = document.getElementById('colorContainer');
+            colors.forEach((col, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn';
+                btn.style.background = col.c;
+                btn.onclick = () => applyColor(i);
+                c.appendChild(btn);
+            });
+        }
+
+        function applyColor(idx) {
+            const col = colors[idx];
+            const root = document.documentElement.style;
+            root.setProperty('--pixel-color', col.c);
+            root.setProperty('--primary', col.c);
+            document.querySelectorAll('.color-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+            renderBoard(); 
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById('langSelect').value;
+            const d = i18n[lang];
+            document.getElementById('inpTitle').value = d.t;
+            document.getElementById('inpSub').value = d.s;
+            document.getElementById('inpName').value = d.n;
+            document.getElementById('inpClass').value = d.c;
+            document.getElementById('inpDate').value = d.d;
+            updateText('outTitle', d.t);
+            updateText('outSub', d.s);
+            updateText('lblN', d.n);
+            updateText('lblC', d.c);
+            updateText('lblD', d.d);
+        }
+
+        function generateMirror() {
+            const themeKey = document.getElementById('themeSelect').value;
+            const size = parseInt(document.getElementById('sizeSelect').value);
+            
+            let patternPool = [];
+            if(themeKey === 'mix') {
+                Object.values(pixelArt).forEach(arr => patternPool.push(...arr));
+            } else {
+                patternPool = pixelArt[themeKey];
+            }
+
+            currentData = [];
+            for(let i=0; i<2; i++) {
+                const basePattern = patternPool[Math.floor(Math.random() * patternPool.length)];
+                currentData.push(scalePattern(basePattern, size));
+            }
+            renderBoard();
+        }
+
+        function scalePattern(base, size) {
+            let grid = Array(size).fill().map(() => Array(size/2).fill(0));
+            const startR = Math.floor((size - base.length) / 2);
+            const startC = Math.floor((size/2 - base[0].length) / 2) + 1; 
+
+            for(let r=0; r<base.length; r++) {
+                for(let c=0; c<base[0].length; c++) {
+                    if(base[r][c] === 1) {
+                        let targetR = startR + r;
+                        let targetC = startC + c;
+                        if(targetR >= 0 && targetR < size && targetC >= 0 && targetC < size/2) {
+                            grid[targetR][targetC] = 1;
+                        }
+                    }
+                }
+            }
+            return grid;
+        }
+
+        function renderBoard() {
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = '';
+            
+            const size = parseInt(document.getElementById('sizeSelect').value);
+            const showShadow = document.getElementById('aidSelect').value === 'on';
+
+            currentData.forEach((gridLeft) => {
+                const board = document.createElement('div');
+                board.className = 'mirror-board';
+                
+                const pxSize = Math.floor(280 / size) + 'px';
+
+                // LEFT SIDE
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'mirror-half';
+                leftDiv.style.gridTemplateColumns = `repeat(${size/2}, ${pxSize})`;
+                leftDiv.style.gridTemplateRows = `repeat(${size}, ${pxSize})`;
+
+                for(let r=0; r<size; r++) {
+                    for(let c=0; c<size/2; c++) {
+                        const px = document.createElement('div');
+                        px.className = 'pixel';
+                        if(gridLeft[r][c] === 1) px.classList.add('filled');
+                        leftDiv.appendChild(px);
+                    }
+                }
+
+                // DIVIDER
+                const div = document.createElement('div');
+                div.className = 'mirror-divider';
+
+                // RIGHT SIDE
+                const rightDiv = document.createElement('div');
+                rightDiv.className = 'mirror-half';
+                rightDiv.style.gridTemplateColumns = `repeat(${size/2}, ${pxSize})`;
+                rightDiv.style.gridTemplateRows = `repeat(${size}, ${pxSize})`;
+
+                for(let r=0; r<size; r++) {
+                    for(let c=0; c<size/2; c++) {
+                        const px = document.createElement('div');
+                        px.className = 'pixel';
+                        
+                        const mirrorColIndex = (size/2) - 1 - c;
+                        const shouldFill = gridLeft[r][mirrorColIndex] === 1;
+
+                        if(showShadow && shouldFill) {
+                            px.classList.add('shadow');
+                        }
+                        rightDiv.appendChild(px);
+                    }
+                }
+
+                board.appendChild(leftDiv);
+                board.appendChild(div);
+                board.appendChild(rightDiv);
+                container.appendChild(board);
+            });
+        }
+    </script>
+	<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+
+<script>
+function saveAsImage() {
+    const target = document.getElementById("paper");
+
+    const isChrome = /Chrome/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent);
+
+    html2canvas(target, {
+        scale: isChrome ? 1.5 : 2,
+        backgroundColor: "#ffffff",
+        useCORS: true
+    }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "pixel-mirror-worksheet.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+}
+</script>
+
+</body>
+</html>

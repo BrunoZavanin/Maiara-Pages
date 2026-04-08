@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AtivaMente - Agente Secreto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: linear-gradient(135deg, #1a1a1a, #2c3e50);
+            --accent: #00ff88;
+            --card-border: #2ecc71;
+            --card-inner: #f0fff4;
+            --text-main: #1a1a1a;
+            --btn-primary: linear-gradient(145deg, #00ff88, #00cc6a);
+            --a4-width: 210mm;
+        }
+        [data-theme="spy"]    { --bg-main: linear-gradient(135deg, #0f0c29, #302b63, #24243e); --accent: #00f260; --card-border: #0575e6; --card-inner: #e6f1ff; --text-main: #000; --btn-primary: linear-gradient(to right, #0575e6, #00f260); }
+        [data-theme="pink"]   { --bg-main: linear-gradient(135deg, #ff9a9e, #fecfef); --accent: #ff0055; --card-border: #ff6b6b; --card-inner: #fff0f5; --text-main: #590018; --btn-primary: linear-gradient(145deg, #ff758c, #ff7eb3); }
+        [data-theme="jungle"] { --bg-main: linear-gradient(135deg, #134e5e, #71b280); --accent: #ffeb3b; --card-border: #2e7d32; --card-inner: #f1f8e9; --text-main: #1b5e20; --btn-primary: linear-gradient(145deg, #66bb6a, #43a047); }
+        [data-theme="sunset"] { --bg-main: linear-gradient(135deg, #ff512f, #dd2476); --accent: #ffd700; --card-border: #ff6b6b; --card-inner: #fff5e6; --text-main: #8e2de2; --btn-primary: linear-gradient(145deg, #ff9966, #ff5e62); }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; hyphens: none; -webkit-hyphens: none; }
+        body { margin: 0; font-family: 'Nunito', sans-serif; background: var(--bg-main); display: flex; justify-content: center; min-height: 100vh; }
+        .settings-panel { width: 350px; background: #ffffff; padding: 20px; height: 100vh; position: sticky; top: 0; overflow-y: auto; border-right: 1px solid #e2e8f0; color: #1a2340; }
+        .panel-header { font-family: 'Fredoka', sans-serif; font-size: 1.4rem; color: #5b21b6; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 4px; font-weight: 700; color: #6d28d9; text-transform: uppercase; font-size: 0.7rem; }
+        select, input, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #e2e8f0; background: #f8fafc; color: #1a2340; outline: none; margin-bottom: 5px; font-size: 0.9rem; font-family: 'Nunito'; }
+        textarea { resize: vertical; min-height: 80px; }
+        option { background: #fff; }
+        .btn-gen { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--btn-primary); color: #000; font-weight: 900; cursor: pointer; font-family: 'Fredoka'; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .btn-gen:active { transform: scale(0.98); }
+        .btn-print { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font-weight: 900; cursor: pointer; font-family: 'Fredoka'; margin-top: 10px; }
+        .btn-toggle { background: #f1f5f9; border: 1px solid #cbd5e1; color: #374151; box-shadow: none; }
+        .lang-note { font-size: 0.68rem; color: #6b7280; margin-top: 4px; line-height: 1.4; padding: 6px 8px; background: #f1f5f9; border-radius: 6px; }
+        .worksheet-wrapper { background: white; width: var(--a4-width); padding: 15mm; color: #333; margin: 20px; min-height: 297mm; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+        .top-secret-stamp { position: absolute; top: 20px; right: 20px; border: 3px solid #d00; color: #d00; padding: 5px 15px; font-family: 'Courier Prime', monospace; font-weight: bold; font-size: 1.5rem; transform: rotate(-10deg); opacity: 0.7; letter-spacing: 2px; }
+        .ws-header { border-bottom: 4px solid var(--card-border); padding-bottom: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .ws-title-box h1 { margin: 0; font-family: 'Fredoka'; font-size: 2.2rem; color: var(--text-main); line-height: 1; text-transform: uppercase; }
+        .ws-info-box { font-weight: 700; font-size: 0.9rem; text-align: right; line-height: 1.6; color: #555; }
+        .input-line { display: inline-block; width: 150px; border-bottom: 2px solid #ccc; margin-left: 5px; height: 1rem; }
+        .cipher-container { flex-grow: 1; display: flex; flex-direction: column; gap: 30px; }
+        .message-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px; background: var(--card-inner); border-radius: 15px; border: 2px dashed var(--card-border); break-inside: avoid; page-break-inside: avoid; }
+        .word-group { display: inline-flex; gap: 10px; flex-shrink: 0; max-width: 100%; flex-wrap: wrap; justify-content: center; }
+        .syllable-group { display: inline-flex; gap: 10px; flex-shrink: 0; }
+        .char-box { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 45px; }
+        .symbol { font-size: 2rem; width: 45px; height: 45px; background: white; border: 2px solid var(--card-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 rgba(0,0,0,0.1); }
+        .answer-slot { width: 100%; height: 25px; border-bottom: 3px solid #333; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+        .answer-text { font-family: 'Fredoka', sans-serif; font-weight: bold; font-size: 1.2rem; color: #d00; margin-bottom: 2px; opacity: 0; transition: opacity 0.3s; }
+        body.show-answers .answer-text { opacity: 1; }
+        .spacer { width: 30px; }
+        .decoder-section { margin-top: auto; border-top: 2px solid #eee; padding-top: 20px; }
+        .decoder-title { font-family: 'Fredoka'; margin-bottom: 10px; text-align: center; color: var(--card-border); }
+        .key-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; }
+        .key-item { border: 1px solid #ccc; border-radius: 6px; padding: 4px; display: flex; flex-direction: column; align-items: center; font-size: 0.8rem; background: #fafafa; break-inside: avoid; page-break-inside: avoid; }
+        .key-sym { font-size: 1.2rem; margin-bottom: 2px; }
+        .key-char { font-weight: bold; font-family: 'Courier Prime', monospace; color: var(--text-main); }
+        .ws-footer { margin-top: 15px; text-align: center; font-size: 0.7rem; color: #999; }
+        @media print {
+            body { background: white; }
+            .settings-panel { display: none; }
+            .worksheet-wrapper { margin: 0; box-shadow: none; width: 100%; min-height: 100vh; height: auto; display: block; }
+            .message-row, .key-item, .decoder-section { break-inside: avoid; page-break-inside: avoid; }
+            body.show-answers .answer-text { opacity: 1 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+
+<style id="am-nav-style">
+#am-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 46px;
+  background: rgba(7, 10, 22, 0.96);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; z-index: 99999;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  box-sizing: border-box;
+}
+#am-nav img {
+  height: 27px; object-fit: contain; display: block;
+}
+#am-nav a.am-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-decoration: none; font-weight: 500;
+  background: rgba(255,255,255,0.07);
+  padding: 5px 13px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+#am-nav a.am-back:hover {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+@media print { #am-nav { display: none !important; } }
+</style>
+</head>
+<body data-theme="spy">
+<div id="am-nav"><img src="../../Logo.png" alt="AtivaMente Kids"><a href="../../index.html" class="am-back">← Painel</a></div>
+
+    <div class="settings-panel">
+        <div class="panel-header">🕵️ SPY MAKER</div>
+
+        <div class="control-group">
+            <label>🌍 Idioma da Atividade</label>
+            <select id="langSelect" onchange="applyLanguage()">
+                <option value="en">🇺🇸 English</option>
+                <option value="pt" selected>🇧🇷 Português (BR)</option>
+                <option value="id">🇮🇩 Indonesia</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="ms">🇲🇾 Melayu</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="ja">🇯🇵 Japanese</option>
+            </select>
+            <div class="lang-note" id="langNote"></div>
+        </div>
+
+        <div class="control-group">
+            <label>Mensagem Secreta (Máx. 100 caracteres)</label>
+            <textarea id="secretInput"></textarea>
+        </div>
+
+        <div class="control-group">
+            <label>Símbolos do Código</label>
+            <select id="symbolSet" onchange="render()">
+                <option value="emoji_nature">🌲 Nature Code</option>
+                <option value="emoji_animals">🐾 Animal Code</option>
+                <option value="emoji_shapes">🔷 Shape Code</option>
+                <option value="emoji_sports">⚽ Sport Code</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Dificuldade</label>
+            <select id="difficulty" onchange="render()">
+                <option value="normal">Normal (Chave Completa)</option>
+                <option value="hard">Difícil (Chave Parcial - Sem vogais)</option>
+            </select>
+        </div>
+
+        <hr style="opacity:0.2">
+
+        <div class="control-group">
+            <label>Título</label>
+            <input type="text" id="custTitle" oninput="render()">
+            <label>Instrução</label>
+            <input type="text" id="custInstr" oninput="render()">
+        </div>
+
+        <div class="control-group">
+            <label>Rótulos e Rodapé</label>
+            <input type="text" id="lblAgent" placeholder="Rótulo do Agente" oninput="render()">
+            <input type="text" id="lblDate" placeholder="Rótulo de Data" oninput="render()">
+            <input type="text" id="custFooter" placeholder="Texto do Rodapé" oninput="render()">
+        </div>
+
+        <div class="control-group">
+            <label>Tema</label>
+            <select id="themeSelect" onchange="updateTheme()">
+                <option value="spy">Spy Blue</option>
+                <option value="pink">Candy Pink</option>
+                <option value="jungle">Jungle Adventure</option>
+                <option value="sunset">Sunset Vibe</option>
+            </select>
+        </div>
+
+        <button class="btn-gen" onclick="randomAndRender()">🎲 MENSAGEM ALEATÓRIA</button>
+        <button class="btn-gen" onclick="render()">🔒 CRIPTOGRAFAR MENSAGEM</button>
+        <button class="btn-gen btn-toggle" onclick="toggleAnswers()">👁️ MOSTRAR/OCULTAR GABARITO</button>
+        <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR MISSÃO</button>
+        <button class="btn-print" onclick="saveAsImage()">💾 SALVAR COMO IMAGEM</button>
+    </div>
+
+    <div class="worksheet-wrapper">
+        <div class="top-secret-stamp" id="out-stamp">CONFIDENTIAL</div>
+        <div class="ws-header">
+            <div class="ws-title-box">
+                <h1 id="out-title">TOP SECRET MISSION</h1>
+                <div id="out-instr" style="font-weight:600; color:#666; font-size:0.9rem; margin-top:5px;"></div>
+            </div>
+            <div class="ws-info-box">
+                <div><span id="out-agent-label">Agent Name:</span> <span class="input-line"></span></div>
+                <div><span id="out-date-label">Date:</span> <span class="input-line"></span></div>
+                <div>Code ID: <span id="code-id">#001</span></div>
+            </div>
+        </div>
+        <div class="cipher-container" id="message-container"></div>
+        <div class="decoder-section">
+            <div class="decoder-title" id="out-decoder-title">🔐 DECODER KEY</div>
+            <div class="key-grid" id="key-grid"></div>
+        </div>
+        <div class="ws-footer" id="out-footer"></div>
+    </div>
+
+    <script>
+        const symbols = {
+            emoji_nature:  ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍄','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🥔','🍠'],
+            emoji_animals: ['🐘','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐒','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴'],
+            emoji_shapes:  ['🔴','🟠','🟡','🟢','🔵','🟣','🟤','⚫','⚪','🟥','🟧','🟨','🟩','🟦','🟪','🟫','⬛','⬜','🔺','🔶','🔷','💠','🔘','🔳','🔲','🏳️'],
+            emoji_sports:  ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🎱','🥏','🏓','🏸','🏒','🏑','🥍','🏏','⛳','🥊','🥋','⛸️','🎣','🤿','🛹','🛷','🏹','🎯']
+        };
+
+        const languages = {
+            en: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: {},
+                latinBased: true,
+                ui: { stamp:'CONFIDENTIAL', title:'TOP SECRET MISSION', instr:'Use the key below to decode the message:', agent:'Agent Name:', date:'Date:', footer:'Generated with OrbitLogic Secret Maker', decoderKey:'🔐 DECODER KEY', note:'Cipher covers A–Z.' },
+                defaultMsg: "HELLO AGENT\nFIND THE TREASURE"
+            },
+            pt: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: { 'Á':'A','À':'A','Â':'A','Ã':'A','Ä':'A','É':'E','Ê':'E','Ë':'E','Í':'I','Î':'I','Ï':'I','Ó':'O','Ô':'O','Õ':'O','Ö':'O','Ú':'U','Û':'U','Ü':'U','Ç':'C','Ñ':'N' },
+                latinBased: true,
+                ui: { stamp:'CONFIDENCIAL', title:'MISSÃO SECRETA', instr:'Use a chave abaixo para decifrar a mensagem:', agent:'Nome do Agente:', date:'Data:', footer:'Gerado com OrbitLogic Secret Maker', decoderKey:'🔐 CHAVE DECODIFICADORA', note:'O cifrador usa A–Z. Letras acentuadas (Á, Ã, Ç…) usam a letra base no código, mas aparecem com acento na resposta.' },
+                defaultMsg: "OLÁ AGENTE\nENCONTRE O TESOURO"
+            },
+            id: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: {},
+                latinBased: true,
+                ui: { stamp:'RAHASIA', title:'MISI RAHASIA', instr:'Gunakan kunci di bawah untuk memecahkan pesan:', agent:'Nama Agen:', date:'Tanggal:', footer:'Dibuat dengan OrbitLogic Secret Maker', decoderKey:'🔐 KUNCI DEKODER', note:'Sandi menggunakan alfabet A–Z.' },
+                defaultMsg: "HALO AGEN\nTEMUKAN HARTA KARUN"
+            },
+            de: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: { 'Ä':'A','Ö':'O','Ü':'U','ß':'S' },
+                latinBased: true,
+                ui: { stamp:'GEHEIM', title:'GEHEIMMISSION', instr:'Benutze den Schlüssel unten, um die Nachricht zu entschlüsseln:', agent:'Agentenname:', date:'Datum:', footer:'Erstellt mit OrbitLogic Secret Maker', decoderKey:'🔐 DECODER-SCHLÜSSEL', note:'Sonderzeichen (Ä→A, Ö→O, Ü→U, ß→S) auf Basiscode gemappt.' },
+                defaultMsg: "HALLO AGENT\nFINDE DEN SCHATZ"
+            },
+            fr: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: { 'À':'A','Â':'A','Æ':'A','É':'E','È':'E','Ê':'E','Ë':'E','Î':'I','Ï':'I','Ô':'O','Œ':'O','Ù':'U','Û':'U','Ü':'U','Ç':'C','Ÿ':'Y' },
+                latinBased: true,
+                ui: { stamp:'CONFIDENTIEL', title:'MISSION SECRÈTE', instr:"Utilise la clé ci-dessous pour décoder le message :", agent:"Nom de l'agent :", date:'Date :', footer:'Créé avec OrbitLogic Secret Maker', decoderKey:'🔐 CLÉ DE DÉCODAGE', note:'Caractères accentués (É→E, Ç→C…) mappés sur la lettre de base.' },
+                defaultMsg: "BONJOUR AGENT\nTROUVE LE TRESOR"
+            },
+            ms: {
+                alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(''),
+                vowels: ['A','E','I','O','U'],
+                accentMap: {},
+                latinBased: true,
+                ui: { stamp:'SULIT', title:'MISI RAHSIA', instr:'Gunakan kunci di bawah untuk menyahkod mesej:', agent:'Nama Ejen:', date:'Tarikh:', footer:'Dijana dengan OrbitLogic Secret Maker', decoderKey:'🔐 KUNCI DEKOD', note:'Sifer menggunakan abjad A–Z.' },
+                defaultMsg: "HELLO EJEN\nCARI HARTA KARUN"
+            },
+            ar: {
+                alphabet: ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','و'],
+                vowels: ['ا','و'],
+                accentMap: { 'ى':'ا','أ':'ا','إ':'ا','آ':'ا','ة':'ت','ي':'و' },
+                latinBased: false,
+                ui: { stamp:'سري', title:'مهمة سرية', instr:'استخدم المفتاح أدناه لفك شفرة الرسالة:', agent:'اسم العميل:', date:'التاريخ:', footer:'تم إنشاؤه بواسطة OrbitLogic Secret Maker', decoderKey:'🔐 مفتاح فك التشفير', note:'الشفرة تستخدم 26 حرفًا من الأبجدية العربية.' },
+                defaultMsg: "مرحبا عميلي\nابحث عن الكنز"
+            },
+            ja: {
+                alphabet: ['ア','イ','ウ','エ','オ','カ','キ','ク','ケ','コ','サ','シ','ス','セ','ソ','タ','チ','ツ','テ','ト','ナ','ニ','ヌ','ネ','ノ','ハ'],
+                vowels: ['ア','イ','ウ','エ','オ'],
+                accentMap: {},
+                latinBased: false,
+                ui: { stamp:'極秘', title:'ひみつのミッション', instr:'下のキーを使ってメッセージを解読しよう：', agent:'エージェント名：', date:'日付：', footer:'OrbitLogic Secret Makerで作成', decoderKey:'🔐 デコーダーキー', note:'暗号はカタカナ26文字に対応しています。' },
+                defaultMsg: "こんにちはエージェント\nたからをさがせ"
+            }
+        };
+
+        // ─── Message Banks (15+ per language) ──────────────────────────────────
+        const messageBanks = {
+            en: [
+                "HELLO AGENT\nFIND THE TREASURE",
+                "THE EAGLE HAS LANDED\nMISSION COMPLETE",
+                "DANGER AHEAD\nSTAY IN THE SHADOWS",
+                "MEET AT MIDNIGHT\nBRING THE MAP",
+                "THE SPY IS NEAR\nDO NOT TRUST ANYONE",
+                "CODE RED ALERT\nEVACUATE NOW",
+                "LOOK UNDER THE BRIDGE\nTHE PACKAGE IS THERE",
+                "FOLLOW THE STARS\nNORTH IS YOUR GUIDE",
+                "THE LION SLEEPS\nWAIT FOR THE SIGNAL",
+                "CRACK THE CODE\nSAVE THE WORLD",
+                "JUMP OVER THE WALL\nRUN TO FREEDOM",
+                "THE MOON IS FULL\nTIME TO ACT",
+                "FIND THE SECRET DOOR\nHIDDEN IN THE CAVE",
+                "TRUST NO ONE\nYOU ARE ALONE",
+                "THE TREASURE IS BURIED\nDIG SEVEN STEPS EAST",
+                "OPERATION SUNRISE\nBEGINS AT DAWN"
+            ],
+            pt: [
+                "OLÁ AGENTE\nENCONTRE O TESOURO",
+                "A ÁGUIA POUSOU\nMISSÃO CUMPRIDA",
+                "PERIGO À FRENTE\nFIQUE NAS SOMBRAS",
+                "ENCONTRE AO MEIO DIA\nTRAGA O MAPA",
+                "O ESPIÃO ESTÁ PERTO\nNÃO CONFIE EM NINGUÉM",
+                "CÓDIGO VERMELHO\nEVACUE AGORA",
+                "OLHE EMBAIXO DA PONTE\nO PACOTE ESTÁ LÁ",
+                "SIGA AS ESTRELAS\nO NORTE É SEU GUIA",
+                "O LEÃO DORME\nESPERE O SINAL",
+                "QUEBRE O CÓDIGO\nSALVE O MUNDO",
+                "PULE O MURO\nCORRA PARA A LIBERDADE",
+                "A LUA ESTÁ CHEIA\nHORA DE AGIR",
+                "ENCONTRE A PORTA SECRETA\nESCONDIDA NA CAVERNA",
+                "NÃO CONFIE EM NINGUÉM\nVOCÊ ESTÁ SOZINHO",
+                "O TESOURO ESTÁ ENTERRADO\nESCAVE SETE PASSOS",
+                "OPERAÇÃO AURORA\nCOMEÇA NO AMANHECER"
+            ],
+            id: [
+                "HALO AGEN\nTEMUKAN HARTA KARUN",
+                "ELANG TELAH MENDARAT\nMISI SELESAI",
+                "BAHAYA DI DEPAN\nTETAP DI BAYANGAN",
+                "BERTEMU TENGAH MALAM\nBAWA PETA",
+                "MATA MATA SUDAH DEKAT\nJANGAN PERCAYA SIAPAPUN",
+                "PERINGATAN MERAH\nEVAKUASI SEKARANG",
+                "LIHAT DI BAWAH JEMBATAN\nPAKET ADA DI SANA",
+                "IKUTI BINTANG\nUTARA ADALAH PANDUAN",
+                "SINGA SEDANG TIDUR\nTUNGGU SINYAL",
+                "PECAHKAN KODE\nSELAMATKAN DUNIA",
+                "LOMPATI TEMBOK\nLARI KE KEBEBASAN",
+                "BULAN PENUH\nWAKTU UNTUK BERTINDAK",
+                "TEMUKAN PINTU RAHASIA\nTERSEMBUNYI DI GUA",
+                "JANGAN PERCAYA SIAPAPUN\nKAMU SENDIRIAN",
+                "HARTA TERKUBUR\nGALI TUJUH LANGKAH",
+                "OPERASI FAJAR\nDIMULAI SAAT SUBUH"
+            ],
+            de: [
+                "HALLO AGENT\nFINDE DEN SCHATZ",
+                "DER ADLER IST GELANDET\nMISSION ERFÜLLT",
+                "GEFAHR VORAUS\nBLEIB IM SCHATTEN",
+                "TREFFE UM MITTERNACHT\nBRING DIE KARTE",
+                "DER SPION IST NAH\nVERTRAUE NIEMANDEM",
+                "CODE ROT ALARM\nEVAKUIERE JETZT",
+                "SCHAU UNTER DIE BRÜCKE\nDAS PAKET IST DA",
+                "FOLGE DEN STERNEN\nNORDEN IST DEIN FÜHRER",
+                "DER LÖWE SCHLÄFT\nWARTE AUF DAS SIGNAL",
+                "KNACKE DEN CODE\nRETTE DIE WELT",
+                "SPRING ÜBER DIE MAUER\nLAUF IN DIE FREIHEIT",
+                "DER MOND IST VOLL\nZEIT ZU HANDELN",
+                "FINDE DIE GEHEIMTÜR\nVERSTECKT IN DER HÖHLE",
+                "VERTRAUE NIEMANDEM\nDU BIST ALLEIN",
+                "DER SCHATZ IST VERGRABEN\nGRAB SIEBEN SCHRITTE",
+                "OPERATION MORGENROT\nBEGINNT BEI SONNENAUFGANG"
+            ],
+            fr: [
+                "BONJOUR AGENT\nTROUVE LE TRESOR",
+                "L AIGLE A ATTERRI\nMISSION ACCOMPLIE",
+                "DANGER DEVANT\nRESTE DANS L OMBRE",
+                "RETROUVE A MINUIT\nAPPORTE LA CARTE",
+                "L ESPION EST PROCHE\nNE FAIS CONFIANCE A PERSONNE",
+                "CODE ROUGE ALERTE\nEVACUE MAINTENANT",
+                "REGARDE SOUS LE PONT\nLE COLIS EST LA",
+                "SUIS LES ETOILES\nLE NORD EST TON GUIDE",
+                "LE LION DORT\nATTENDS LE SIGNAL",
+                "BRISE LE CODE\nSAUVE LE MONDE",
+                "SAUTE LE MUR\nCOURS VERS LA LIBERTE",
+                "LA LUNE EST PLEINE\nIL EST TEMPS D AGIR",
+                "TROUVE LA PORTE SECRETE\nCACHEE DANS LA GROTTE",
+                "NE FAIS CONFIANCE A PERSONNE\nTU ES SEUL",
+                "LE TRESOR EST ENTERRE\nCREUSE SEPT PAS",
+                "OPERATION AURORE\nCOMMENCE A L AUBE"
+            ],
+            ms: [
+                "HELLO EJEN\nCARI HARTA KARUN",
+                "HELANG TELAH MENDARAT\nMISI SELESAI",
+                "BAHAYA DI HADAPAN\nTINGGAL DI BAYANG",
+                "JUMPA TENGAH MALAM\nBAWA PETA",
+                "PENGINTIP SUDAH DEKAT\nJANGAN PERCAYA SESIAPA",
+                "AMARAN MERAH\nBEREDAR SEKARANG",
+                "TENGOK DI BAWAH JAMBATAN\nPAKEJ ADA DI SANA",
+                "IKUT BINTANG\nUTARA PANDUAN KAMU",
+                "SINGA SEDANG TIDUR\nTUNGGU ISYARAT",
+                "PECAH KOD\nSELAMAT DUNIA",
+                "LOMPAT TEMBOK\nLARI KE KEBEBASAN",
+                "BULAN PURNAMA\nMASA UNTUK BERTINDAK",
+                "CARI PINTU RAHSIA\nTERSEMBUNYI DI GUA",
+                "JANGAN PERCAYA SESIAPA\nKAMU SEORANG DIRI",
+                "HARTA TERTANAM\nGALI TUJUH LANGKAH",
+                "OPERASI FAJAR\nMULA SAAT SUBUH"
+            ],
+            ar: [
+                "مرحبا عميلي\nابحث عن الكنز",
+                "النسر هبط\nالمهمة اكتملت",
+                "خطر امامك\nابق في الظل",
+                "التقي منتصف الليل\nاحضر الخريطة",
+                "الجاسوس قريب\nلا تثق بأحد",
+                "تحذير احمر\nاخل الان",
+                "انظر تحت الجسر\nالطرد هناك",
+                "اتبع النجوم\nالشمال دليلك",
+                "الاسد نائم\nانتظر الاشارة",
+                "افك الشفرة\nانقذ العالم",
+                "اقفز فوق الجدار\nاركض نحو الحرية",
+                "القمر مكتمل\nحان وقت التحرك",
+                "ابحث عن الباب السري\nمخبأ في الكهف",
+                "لا تثق بأحد\nانت وحدك",
+                "الكنز مدفون\nاحفر سبع خطوات",
+                "عملية الفجر\nتبدأ عند الشروق"
+            ],
+            ja: [
+                "こんにちはエージェント\nたからをさがせ",
+                "わしがちゃくりくした\nにむかんりょう",
+                "まえにきけんがある\nかげにいろ",
+                "まよなかにあえ\nちずをもってこい",
+                "スパイがちかい\nだれもしんじるな",
+                "あかいけいほう\nすぐにひなんせよ",
+                "はしのしたをみろ\nにもつがある",
+                "ほしをおえ\nきたがみちしるべ",
+                "ライオンがねむる\nあいずをまて",
+                "コードをかいけつ\nせかいをすくえ",
+                "かべをとびこえろ\nじゆうへはしれ",
+                "つきがみちている\nうごくじかんだ",
+                "ひみつのとびらをさがせ\nどうくつにかくれている",
+                "だれもしんじるな\nひとりだ",
+                "たからはうめられている\nひがしにすすめ",
+                "さくせんはじまり\nあかつきにそなえよ"
+            ]
+        };
+
+        // ─── Syllabifier (Portuguese / Latin-based) ─────────────────────────────
+        function syllabify(word) {
+            const w = word.toUpperCase();
+            const isV = c => 'AEIOUÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÄËÏÖÜ'.includes(c);
+            const INSEP = new Set(['BR','BL','CR','CL','DR','FL','FR','GL','GR','PL','PR','TR','TL','VR','VL','CH','LH','NH','GU','QU']);
+            const DIPH  = new Set(['AI','AO','AU','EI','EU','IA','IE','IO','IU','OA','OE','OI','OU','UA','UE','UI','UO','ÃO','ÃE']);
+            const breaks = [0];
+
+            for (let i = 1; i < w.length; i++) {
+                const curr = w[i], prev = w[i - 1];
+                if (isV(curr) && !isV(prev)) {
+                    // Find all consonants immediately before this vowel
+                    let j = i - 1;
+                    const cons = [];
+                    while (j >= 0 && !isV(w[j])) { cons.unshift(w[j]); j--; }
+                    if (j < 0) continue; // word starts with consonant(s)
+                    const n = cons.length;
+                    let bp;
+                    if (n === 1) { bp = i - 1; }
+                    else if (n === 2) { bp = INSEP.has(cons[0] + cons[1]) ? i - 2 : i - 1; }
+                    else { bp = INSEP.has(cons[n-2] + cons[n-1]) ? i - 2 : i - 1; }
+                    if (bp > 0 && !breaks.includes(bp)) breaks.push(bp);
+                } else if (isV(curr) && isV(prev)) {
+                    if (!DIPH.has(prev + curr) && !breaks.includes(i)) breaks.push(i);
+                }
+            }
+
+            breaks.sort((a, b) => a - b);
+            breaks.push(w.length);
+            const result = [];
+            for (let i = 0; i < breaks.length - 1; i++) {
+                const s = word.slice(breaks[i], breaks[i + 1]);
+                if (s) result.push(s);
+            }
+            return result.length ? result : [word];
+        }
+
+        let currentLang = 'en';
+        let lastMsgIndex = -1;
+
+        function pickRandomMessage(lang) {
+            const bank = messageBanks[lang] || messageBanks['en'];
+            let idx;
+            do { idx = Math.floor(Math.random() * bank.length); } while (idx === lastMsgIndex && bank.length > 1);
+            lastMsgIndex = idx;
+            return bank[idx];
+        }
+
+        function updateTheme() {
+            document.body.setAttribute('data-theme', document.getElementById('themeSelect').value);
+        }
+
+        function toggleAnswers() {
+            document.body.classList.toggle('show-answers');
+        }
+
+        function applyLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            const L = languages[currentLang];
+            document.getElementById('custTitle').value  = L.ui.title;
+            document.getElementById('custInstr').value  = L.ui.instr;
+            document.getElementById('lblAgent').value   = L.ui.agent;
+            document.getElementById('lblDate').value    = L.ui.date;
+            document.getElementById('custFooter').value = L.ui.footer;
+            document.getElementById('langNote').innerText = L.ui.note;
+            lastMsgIndex = -1;
+            document.getElementById('secretInput').value = pickRandomMessage(currentLang);
+            renderWithCurrentMsg();
+        }
+
+        function randomAndRender() {
+            document.getElementById('secretInput').value = pickRandomMessage(currentLang);
+            renderWithCurrentMsg();
+        }
+
+        function render() {
+            renderWithCurrentMsg();
+        }
+
+        function renderWithCurrentMsg() {
+            const L = languages[currentLang];
+            const { alphabet, vowels, accentMap } = L;
+            const currentSymbols = symbols[document.getElementById('symbolSet').value];
+            const difficulty = document.getElementById('difficulty').value;
+
+            // Update worksheet labels
+            document.getElementById('out-title').innerText        = document.getElementById('custTitle').value;
+            document.getElementById('out-instr').innerText        = document.getElementById('custInstr').value;
+            document.getElementById('out-agent-label').innerText  = document.getElementById('lblAgent').value;
+            document.getElementById('out-date-label').innerText   = document.getElementById('lblDate').value;
+            document.getElementById('out-footer').innerText       = document.getElementById('custFooter').value;
+            document.getElementById('out-stamp').innerText        = L.ui.stamp;
+            document.getElementById('out-decoder-title').innerText = L.ui.decoderKey;
+            document.getElementById('code-id').innerText          = "#" + Math.floor(Math.random() * 9999);
+
+            // Build cipher map
+            let cipherMap = {};
+            alphabet.forEach((char, idx) => {
+                if (idx < currentSymbols.length) cipherMap[char] = currentSymbols[idx];
+            });
+
+            // Normalise message
+            const rawMsg = document.getElementById('secretInput').value;
+            const msg = L.latinBased ? rawMsg.toUpperCase() : rawMsg;
+
+            // Render message rows
+            const msgContainer = document.getElementById('message-container');
+            msgContainer.innerHTML = '';
+            msg.split('\n').forEach(line => {
+                let rowHtml = '<div class="message-row">';
+                line.split(' ').forEach((word, wi, arr) => {
+                    if (!word) return;
+                    const syllables = L.latinBased ? syllabify(word) : [word];
+                    rowHtml += '<div class="word-group">';
+                    syllables.forEach(syl => {
+                        rowHtml += '<div class="syllable-group">';
+                        for (const char of syl) {
+                            const cipherChar = accentMap[char] !== undefined ? accentMap[char] : char;
+                            if (cipherMap[cipherChar] !== undefined) {
+                                rowHtml += `<div class="char-box">
+                                    <div class="symbol">${cipherMap[cipherChar]}</div>
+                                    <div class="answer-slot"><span class="answer-text">${char}</span></div>
+                                </div>`;
+                            }
+                        }
+                        rowHtml += '</div>';
+                    });
+                    rowHtml += '</div>';
+                    if (wi < arr.length - 1) rowHtml += '<div class="spacer"></div>';
+                });
+                rowHtml += '</div>';
+                msgContainer.innerHTML += rowHtml;
+            });
+
+            // Render decoder key
+            const keyGrid = document.getElementById('key-grid');
+            keyGrid.innerHTML = '';
+            alphabet.forEach((char, idx) => {
+                if (idx >= currentSymbols.length) return;
+                const displayChar = (difficulty === 'hard' && vowels.includes(char)) ? '?' : char;
+                keyGrid.innerHTML += `<div class="key-item">
+                    <div class="key-sym">${cipherMap[char]}</div>
+                    <div class="key-char">${displayChar}</div>
+                </div>`;
+            });
+        }
+
+        window.onload = () => { applyLanguage(); };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+    function saveAsImage() {
+        const target = document.querySelector(".worksheet-wrapper");
+        const isChrome = /Chrome/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent);
+        html2canvas(target, { scale: isChrome ? 1.5 : 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "secret-code-worksheet.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+    </script>
+</body>
+</html>
