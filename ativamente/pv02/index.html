@@ -1522,8 +1522,9 @@
     const q = utmParams.filter(k=>p.has(k)).map(k=>k+'='+encodeURIComponent(p.get(k))).join('&');
     if(!q) return;
     document.querySelectorAll('.checkout-link').forEach(l=>{
-        if(!l.href.startsWith('http')) return;
-        l.href += (l.href.includes('?')?'&':'?')+q;
+        const raw = l.getAttribute('href') || '';
+        if(!raw.startsWith('http')) return;
+        l.href = raw + (raw.includes('?') ? '&' : '?') + q;
     });
 })();
 
